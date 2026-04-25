@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import vaultData from "../data.json";
 
 function App() {
   const [vaultItems, setVaultItems] = useState([]);
   const [expandedFolders, setExpandedFolders] = useState({});
   const [selectedFileId, setSelectedFileId] = useState(null);
+  const [focusedItemId, setFocusedItemId] = useState(null);
+  const itemRefs = useRef({});
 
   useEffect(() => {
     setVaultItems(vaultData);
     setExpandedFolders(buildInitialExpandedState(vaultData));
+    setFocusedItemId(vaultData[0]?.id ?? null);
   }, []);
 
   const buildInitialExpandedState = (items) => {
@@ -30,6 +33,23 @@ function App() {
       ...current,
       [folderId]: !current[folderId]
     }));
+  };
+
+  const flattenVisibleItems = (items, depth = 0, parentId = null) => {
+    const result = [];
+
+    for (const item of items) {
+      result.push({ item, depth, parentId });
+
+      const isFolder = item.type === "folder";
+      const isExpanded = Boolean(expandedFolders[item.id]);
+
+      if (isFolder && isExpanded && item.children?.length) {
+        result.push(...flattenVisibleItems(item.children, depth + 1, item.id));
+      }
+    }
+
+    return result;
   };
 
   const findNodeById = (items, id) => {
@@ -54,6 +74,82 @@ function App() {
     ? selectedFile.type.charAt(0).toUpperCase() + selectedFile.type.slice(1)
     : "-";
   const selectedFileSize = selectedFile?.size ?? "-";
+  const visibleItems = useMemo(
+    () => flattenVisibleItems(vaultItems),
+    [vaultItems, expandedFolders]
+  );
+
+  useEffect(() => {
+    if (!visibleItems.length) {
+      setFocusedItemId(null);
+      return;
+    }
+
+    const stillVisible = visibleItems.some(({ item }) => item.id === focusedItemId);
+    if (!stillVisible) {
+      setFocusedItemId(visibleItems[0].item.id);
+    }
+  }, [focusedItemId, visibleItems]);
+
+  useEffect(() => {
+    if (!focusedItemId) return;
+    itemRefs.current[focusedItemId]?.focus();
+  }, [focusedItemId]);
+
+  const handleExplorerKeyDown = (event) => {
+    if (!visibleItems.length) return;
+
+    const activeIndex = visibleItems.findIndex(({ item }) => item.id === focusedItemId);
+    const currentIndex = activeIndex >= 0 ? activeIndex : 0;
+    const currentEntry = visibleItems[currentIndex];
+    const currentItem = currentEntry.item;
+    const isFolder = currentItem.type === "folder";
+    const hasChildren = isFolder && currentItem.children?.length > 0;
+    const isExpanded = Boolean(expandedFolders[currentItem.id]);
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      const nextIndex = Math.min(currentIndex + 1, visibleItems.length - 1);
+      setFocusedItemId(visibleItems[nextIndex].item.id);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      const prevIndex = Math.max(currentIndex - 1, 0);
+      setFocusedItemId(visibleItems[prevIndex].item.id);
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      if (hasChildren && !isExpanded) {
+        event.preventDefault();
+        setExpandedFolders((current) => ({ ...current, [currentItem.id]: true }));
+      }
+      return;
+    }
+
+    if (event.key === "ArrowLeft") {
+      if (hasChildren && isExpanded) {
+        event.preventDefault();
+        setExpandedFolders((current) => ({ ...current, [currentItem.id]: false }));
+        return;
+      }
+
+      if (currentEntry.parentId) {
+        event.preventDefault();
+        setFocusedItemId(currentEntry.parentId);
+      }
+      return;
+    }
+
+    if (event.key === "Enter") {
+      if (!isFolder) {
+        event.preventDefault();
+        setSelectedFileId(currentItem.id);
+      }
+    }
+  };
 
   const renderTree = (items, depth = 0) => {
     return (
@@ -63,6 +159,7 @@ function App() {
           const hasChildren = isFolder && item.children?.length > 0;
           const isExpanded = Boolean(expandedFolders[item.id]);
           const isSelected = !isFolder && item.id === selectedFileId;
+          const isFocused = item.id === focusedItemId;
 
           return (
             <li key={item.id}>
@@ -73,9 +170,10 @@ function App() {
                     : isSelected
                       ? "cursor-pointer border-sv-cyan/60 bg-[#123357] text-[#eaf7ff]"
                       : "cursor-pointer border-transparent text-sv-text hover:bg-[#0f1d33]"
-                }`}
+                } ${isFocused ? "border-sv-cyan/70 bg-[#102745]" : ""}`}
                 style={{ paddingLeft: `${10 + depth * 16}px` }}
                 onClick={() => {
+                  setFocusedItemId(item.id);
                   if (isFolder) {
                     toggleFolder(item.id);
                     return;
@@ -83,17 +181,21 @@ function App() {
 
                   setSelectedFileId(item.id);
                 }}
-                role={isFolder ? "button" : undefined}
-                tabIndex={isFolder ? 0 : undefined}
+                ref={(element) => {
+                  if (element) {
+                    itemRefs.current[item.id] = element;
+                  }
+                }}
+                tabIndex={isFocused ? 0 : -1}
                 onKeyDown={
-                  isFolder
-                    ? (event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          toggleFolder(item.id);
-                        }
+                  (event) => {
+                    if (event.key === " ") {
+                      event.preventDefault();
+                      if (isFolder) {
+                        toggleFolder(item.id);
                       }
-                    : undefined
+                    }
+                  }
                 }
               >
                 <span
@@ -145,7 +247,7 @@ function App() {
           <h2 className="m-0 border-b border-sv-border p-3 text-[11px] uppercase tracking-[0.12em] text-sv-label">
             Explorer
           </h2>
-          <div className="p-3">
+          <div className="p-3" onKeyDown={handleExplorerKeyDown}>
             {vaultItems.length === 0 ? (
               <p className="text-sm text-sv-text">Loading vault data...</p>
             ) : (
