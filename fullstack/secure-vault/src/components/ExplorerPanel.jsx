@@ -39,13 +39,25 @@ function TreeNode({
         >
           {isFolder ? (hasChildren ? (isExpanded ? "v" : ">") : "o") : ""}
         </span>
-        <span
-          className={`w-6 text-[10px] font-semibold uppercase tracking-[0.08em] ${
-            isFolder ? "text-[#5ce0ff]" : "text-[#8ea8bc]"
-          }`}
-          aria-hidden="true"
-        >
-          {isFolder ? "DIR" : "FILE"}
+        <span className="inline-flex w-4 justify-center" aria-hidden="true">
+          {isFolder ? (
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#5ce0ff]" fill="none">
+              <path
+                d="M3 7.5A1.5 1.5 0 0 1 4.5 6H10l2 2h7.5A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-10Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#8ea8bc]" fill="none">
+              <path
+                d="M7 4.5A1.5 1.5 0 0 1 8.5 3h6l4 4v12.5A1.5 1.5 0 0 1 17 21H8.5A1.5 1.5 0 0 1 7 19.5v-15Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <path d="M14.5 3V8h4.5" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          )}
         </span>
         <span className="truncate font-medium">{item.name}</span>
         {isFolder && !hasChildren ? (
