@@ -3,10 +3,33 @@ import vaultData from "../data.json";
 
 function App() {
   const [vaultItems, setVaultItems] = useState([]);
+  const [expandedFolders, setExpandedFolders] = useState({});
 
   useEffect(() => {
     setVaultItems(vaultData);
+    setExpandedFolders(buildInitialExpandedState(vaultData));
   }, []);
+
+  const buildInitialExpandedState = (items) => {
+    return items.reduce((acc, item) => {
+      if (item.type === "folder") {
+        acc[item.id] = true;
+      }
+
+      if (item.children?.length) {
+        Object.assign(acc, buildInitialExpandedState(item.children));
+      }
+
+      return acc;
+    }, {});
+  };
+
+  const toggleFolder = (folderId) => {
+    setExpandedFolders((current) => ({
+      ...current,
+      [folderId]: !current[folderId]
+    }));
+  };
 
   const renderTree = (items, depth = 0) => {
     return (
@@ -14,20 +37,34 @@ function App() {
         {items.map((item) => {
           const isFolder = item.type === "folder";
           const hasChildren = isFolder && item.children?.length > 0;
+          const isExpanded = Boolean(expandedFolders[item.id]);
 
           return (
             <li key={item.id}>
               <div
                 className="flex items-center gap-2 border border-transparent px-2 py-1.5 text-sm text-sv-text"
                 style={{ paddingLeft: `${8 + depth * 12}px` }}
+                onClick={isFolder ? () => toggleFolder(item.id) : undefined}
+                role={isFolder ? "button" : undefined}
+                tabIndex={isFolder ? 0 : undefined}
+                onKeyDown={
+                  isFolder
+                    ? (event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          toggleFolder(item.id);
+                        }
+                      }
+                    : undefined
+                }
               >
                 <span className="w-3 text-xs text-sv-cyan" aria-hidden="true">
-                  {isFolder ? ">" : "-"}
+                  {isFolder ? (isExpanded ? "v" : ">") : "-"}
                 </span>
                 <span className="truncate">{item.name}</span>
               </div>
 
-              {hasChildren ? renderTree(item.children, depth + 1) : null}
+              {hasChildren && isExpanded ? renderTree(item.children, depth + 1) : null}
             </li>
           );
         })}
