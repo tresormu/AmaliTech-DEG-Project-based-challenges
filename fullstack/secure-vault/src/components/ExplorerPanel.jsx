@@ -29,7 +29,7 @@ function TreeNode({
         ref={(element) => attachItemRef(item.id, element)}
         role="treeitem"
         aria-selected={!isFolder ? isSelected : undefined}
-        aria-expanded={isFolder ? isExpanded : undefined}
+        aria-expanded={isFolder && hasChildren ? isExpanded : undefined}
         tabIndex={isFocused ? 0 : -1}
         onKeyDown={(event) => onItemKeyDown(event, item)}
       >
@@ -37,7 +37,7 @@ function TreeNode({
           className={`w-2 text-[10px] leading-none ${isFolder ? "text-sv-cyan" : "text-sv-label"}`}
           aria-hidden="true"
         >
-          {isFolder ? (isExpanded ? "v" : ">") : ""}
+          {isFolder ? (hasChildren ? (isExpanded ? "v" : ">") : "o") : ""}
         </span>
         <span
           className={`w-6 text-[10px] font-semibold uppercase tracking-[0.08em] ${
@@ -48,6 +48,9 @@ function TreeNode({
           {isFolder ? "DIR" : "FILE"}
         </span>
         <span className="truncate font-medium">{item.name}</span>
+        {isFolder && !hasChildren ? (
+          <span className="ml-2 text-[10px] uppercase tracking-[0.08em] text-sv-label">empty</span>
+        ) : null}
       </div>
 
       {hasChildren && isExpanded ? (

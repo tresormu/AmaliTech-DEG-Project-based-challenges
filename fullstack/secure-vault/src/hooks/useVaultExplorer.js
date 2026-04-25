@@ -15,12 +15,6 @@ export const useVaultExplorer = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const itemRefs = useRef({});
 
-  const selectedFile = selectedFileId ? findNodeById(vaultItems, selectedFileId) : null;
-  const selectedFileType = selectedFile
-    ? selectedFile.type.charAt(0).toUpperCase() + selectedFile.type.slice(1)
-    : "-";
-  const selectedFileSize = selectedFile?.size ?? "-";
-
   const searchResult = useMemo(() => buildFilteredTree(vaultItems, searchTerm), [vaultItems, searchTerm]);
   const treeItems = searchTerm.trim() ? searchResult.tree : vaultItems;
 
@@ -33,6 +27,20 @@ export const useVaultExplorer = () => {
     () => flattenVisibleItems(treeItems, isExpandedById),
     [treeItems, isExpandedById]
   );
+
+  const effectiveSelectedFileId = useMemo(() => {
+    if (!selectedFileId) return null;
+    if (!searchTerm.trim()) return selectedFileId;
+    return visibleItems.some(({ item }) => item.id === selectedFileId) ? selectedFileId : null;
+  }, [selectedFileId, searchTerm, visibleItems]);
+
+  const selectedFile = effectiveSelectedFileId
+    ? findNodeById(vaultItems, effectiveSelectedFileId)
+    : null;
+  const selectedFileType = selectedFile
+    ? selectedFile.type.charAt(0).toUpperCase() + selectedFile.type.slice(1)
+    : "-";
+  const selectedFileSize = selectedFile?.size ?? "-";
 
   const effectiveFocusedItemId = useMemo(() => {
     if (!visibleItems.length) return null;
@@ -55,6 +63,7 @@ export const useVaultExplorer = () => {
   const onItemClick = (item) => {
     setFocusedItemId(item.id);
     if (item.type === "folder") {
+      if (!item.children?.length) return;
       toggleFolder(item.id);
       return;
     }
@@ -64,6 +73,7 @@ export const useVaultExplorer = () => {
   const onItemKeyDown = (event, item) => {
     if (event.key === " " && item.type === "folder") {
       event.preventDefault();
+      if (!item.children?.length) return;
       toggleFolder(item.id);
     }
   };
@@ -135,7 +145,7 @@ export const useVaultExplorer = () => {
     selectedFile,
     selectedFileType,
     selectedFileSize,
-    selectedFileId,
+    selectedFileId: effectiveSelectedFileId,
     effectiveFocusedItemId,
     isExpandedById,
     handleExplorerKeyDown,
