@@ -1,4 +1,13 @@
+import { useEffect, useState } from "react";
+import vaultData from "../data.json";
+
 function App() {
+  const [vaultItems, setVaultItems] = useState([]);
+
+  useEffect(() => {
+    setVaultItems(vaultData);
+  }, []);
+
   return (
     <div className="grid min-h-screen grid-rows-[56px_1fr] bg-sv-bg text-[#eaf6ff]">
       <header className="flex items-center justify-between border-b border-sv-border bg-sv-top px-5">
@@ -21,8 +30,24 @@ function App() {
           <h2 className="m-0 border-b border-sv-border p-3 text-[11px] uppercase tracking-[0.12em] text-sv-label">
             Explorer
           </h2>
-          <div className="p-4 text-sm leading-relaxed text-sv-text">
-            Tree view will render here.
+          <div className="p-3">
+            {vaultItems.length === 0 ? (
+              <p className="text-sm text-sv-text">Loading vault data...</p>
+            ) : (
+              <ul className="m-0 space-y-1 p-0">
+                {vaultItems.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center gap-2 border border-transparent px-2 py-1.5 text-sm text-sv-text"
+                  >
+                    <span className="text-xs text-sv-cyan" aria-hidden="true">
+                      {item.type === "folder" ? "▸" : "•"}
+                    </span>
+                    <span className="truncate">{item.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </aside>
 
@@ -34,7 +59,7 @@ function App() {
             No Item Selected
           </h1>
           <div className="p-4 text-sm leading-relaxed text-sv-text">
-            Select a file or folder to inspect details.
+            {vaultItems.length} root item(s) loaded from vault data.
           </div>
         </section>
 
