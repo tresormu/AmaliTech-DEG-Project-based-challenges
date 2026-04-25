@@ -8,6 +8,33 @@ function App() {
     setVaultItems(vaultData);
   }, []);
 
+  const renderTree = (items, depth = 0) => {
+    return (
+      <ul className="m-0 space-y-1 p-0">
+        {items.map((item) => {
+          const isFolder = item.type === "folder";
+          const hasChildren = isFolder && item.children?.length > 0;
+
+          return (
+            <li key={item.id}>
+              <div
+                className="flex items-center gap-2 border border-transparent px-2 py-1.5 text-sm text-sv-text"
+                style={{ paddingLeft: `${8 + depth * 12}px` }}
+              >
+                <span className="w-3 text-xs text-sv-cyan" aria-hidden="true">
+                  {isFolder ? ">" : "-"}
+                </span>
+                <span className="truncate">{item.name}</span>
+              </div>
+
+              {hasChildren ? renderTree(item.children, depth + 1) : null}
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
+
   return (
     <div className="grid min-h-screen grid-rows-[56px_1fr] bg-sv-bg text-[#eaf6ff]">
       <header className="flex items-center justify-between border-b border-sv-border bg-sv-top px-5">
@@ -34,19 +61,7 @@ function App() {
             {vaultItems.length === 0 ? (
               <p className="text-sm text-sv-text">Loading vault data...</p>
             ) : (
-              <ul className="m-0 space-y-1 p-0">
-                {vaultItems.map((item) => (
-                  <li
-                    key={item.id}
-                    className="flex items-center gap-2 border border-transparent px-2 py-1.5 text-sm text-sv-text"
-                  >
-                    <span className="text-xs text-sv-cyan" aria-hidden="true">
-                      {item.type === "folder" ? "▸" : "•"}
-                    </span>
-                    <span className="truncate">{item.name}</span>
-                  </li>
-                ))}
-              </ul>
+              renderTree(vaultItems)
             )}
           </div>
         </aside>
