@@ -170,7 +170,7 @@ function App() {
                     : isSelected
                       ? "cursor-pointer border-sv-cyan/60 bg-[#123357] text-[#eaf7ff]"
                       : "cursor-pointer border-transparent text-sv-text hover:bg-[#0f1d33]"
-                } ${isFocused ? "border-sv-cyan/70 bg-[#102745]" : ""}`}
+                } ${isFocused ? "ring-1 ring-inset ring-[#2ed4e2]" : ""} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2ed4e2] focus-visible:ring-offset-0`}
                 style={{ paddingLeft: `${10 + depth * 16}px` }}
                 onClick={() => {
                   setFocusedItemId(item.id);
@@ -186,6 +186,9 @@ function App() {
                     itemRefs.current[item.id] = element;
                   }
                 }}
+                role="treeitem"
+                aria-selected={!isFolder ? isSelected : undefined}
+                aria-expanded={isFolder ? isExpanded : undefined}
                 tabIndex={isFocused ? 0 : -1}
                 onKeyDown={
                   (event) => {
@@ -233,7 +236,7 @@ function App() {
         </div>
         <button
           type="button"
-          className="cursor-pointer border border-sv-border bg-[#0a1729] px-2.5 py-1.5 text-[11px] uppercase tracking-[0.08em] text-sv-cyan"
+          className="cursor-pointer border border-sv-border bg-[#0a1729] px-2.5 py-1.5 text-[11px] uppercase tracking-[0.08em] text-sv-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2ed4e2]"
         >
           Upload
         </button>
@@ -247,7 +250,7 @@ function App() {
           <h2 className="m-0 border-b border-sv-border p-3 text-[11px] uppercase tracking-[0.12em] text-sv-label">
             Explorer
           </h2>
-          <div className="p-3" onKeyDown={handleExplorerKeyDown}>
+          <div className="p-3" onKeyDown={handleExplorerKeyDown} role="tree">
             {vaultItems.length === 0 ? (
               <p className="text-sm text-sv-text">Loading vault data...</p>
             ) : (
