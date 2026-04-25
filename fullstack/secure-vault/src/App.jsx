@@ -50,6 +50,10 @@ function App() {
   };
 
   const selectedFile = selectedFileId ? findNodeById(vaultItems, selectedFileId) : null;
+  const selectedFileType = selectedFile
+    ? selectedFile.type.charAt(0).toUpperCase() + selectedFile.type.slice(1)
+    : "-";
+  const selectedFileSize = selectedFile?.size ?? "-";
 
   const renderTree = (items, depth = 0) => {
     return (
@@ -171,8 +175,23 @@ function App() {
           <h2 className="m-0 border-b border-sv-border p-3 text-[11px] uppercase tracking-[0.12em] text-sv-label">
             Properties
           </h2>
-          <div className="p-4 text-sm leading-relaxed text-sv-text">
-            Metadata panel will render here.
+          <div className="space-y-4 p-4 text-sm leading-relaxed text-sv-text">
+            <div className="border-b border-sv-border/60 pb-2">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-sv-label">Name</p>
+              <p className="mt-1 break-all font-medium text-[#eaf7ff]">
+                {selectedFile?.name ?? "-"}
+              </p>
+            </div>
+
+            <div className="border-b border-sv-border/60 pb-2">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-sv-label">Type</p>
+              <p className="mt-1 font-medium text-[#eaf7ff]">{selectedFileType}</p>
+            </div>
+
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.12em] text-sv-label">Size</p>
+              <p className="mt-1 font-medium text-[#eaf7ff]">{selectedFileSize}</p>
+            </div>
           </div>
         </aside>
       </main>
