@@ -4,6 +4,7 @@ import vaultData from "../data.json";
 function App() {
   const [vaultItems, setVaultItems] = useState([]);
   const [expandedFolders, setExpandedFolders] = useState({});
+  const [selectedFileId, setSelectedFileId] = useState(null);
 
   useEffect(() => {
     setVaultItems(vaultData);
@@ -31,6 +32,25 @@ function App() {
     }));
   };
 
+  const findNodeById = (items, id) => {
+    for (const item of items) {
+      if (item.id === id) {
+        return item;
+      }
+
+      if (item.children?.length) {
+        const match = findNodeById(item.children, id);
+        if (match) {
+          return match;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const selectedFile = selectedFileId ? findNodeById(vaultItems, selectedFileId) : null;
+
   const renderTree = (items, depth = 0) => {
     return (
       <ul className="m-0 space-y-0.5 p-0">
@@ -38,6 +58,7 @@ function App() {
           const isFolder = item.type === "folder";
           const hasChildren = isFolder && item.children?.length > 0;
           const isExpanded = Boolean(expandedFolders[item.id]);
+          const isSelected = !isFolder && item.id === selectedFileId;
 
           return (
             <li key={item.id}>
@@ -45,10 +66,19 @@ function App() {
                 className={`group flex items-center gap-2 rounded-sm border px-2 py-1.5 text-sm transition-colors ${
                   isFolder
                     ? "cursor-pointer border-sv-border/20 text-[#d8ebf8] hover:border-sv-cyan/40 hover:bg-[#11233d]"
-                    : "cursor-default border-transparent text-sv-text hover:bg-[#0f1d33]"
+                    : isSelected
+                      ? "cursor-pointer border-sv-cyan/60 bg-[#123357] text-[#eaf7ff]"
+                      : "cursor-pointer border-transparent text-sv-text hover:bg-[#0f1d33]"
                 }`}
                 style={{ paddingLeft: `${10 + depth * 16}px` }}
-                onClick={isFolder ? () => toggleFolder(item.id) : undefined}
+                onClick={() => {
+                  if (isFolder) {
+                    toggleFolder(item.id);
+                    return;
+                  }
+
+                  setSelectedFileId(item.id);
+                }}
                 role={isFolder ? "button" : undefined}
                 tabIndex={isFolder ? 0 : undefined}
                 onKeyDown={
@@ -125,10 +155,12 @@ function App() {
           aria-label="Details"
         >
           <h1 className="m-0 border-b border-sv-border p-3 text-[11px] uppercase tracking-[0.12em] text-sv-label">
-            No Item Selected
+            {selectedFile ? "File Selected" : "No Item Selected"}
           </h1>
           <div className="p-4 text-sm leading-relaxed text-sv-text">
-            {vaultItems.length} root item(s) loaded from vault data.
+            {selectedFile
+              ? `Selected file: ${selectedFile.name}`
+              : `${vaultItems.length} root item(s) loaded from vault data.`}
           </div>
         </section>
 
