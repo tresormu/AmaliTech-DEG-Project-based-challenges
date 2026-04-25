@@ -33,7 +33,7 @@ function App() {
 
   const renderTree = (items, depth = 0) => {
     return (
-      <ul className="m-0 space-y-1 p-0">
+      <ul className="m-0 space-y-0.5 p-0">
         {items.map((item) => {
           const isFolder = item.type === "folder";
           const hasChildren = isFolder && item.children?.length > 0;
@@ -42,8 +42,12 @@ function App() {
           return (
             <li key={item.id}>
               <div
-                className="flex items-center gap-2 border border-transparent px-2 py-1.5 text-sm text-sv-text"
-                style={{ paddingLeft: `${8 + depth * 12}px` }}
+                className={`group flex items-center gap-2 rounded-sm border px-2 py-1.5 text-sm transition-colors ${
+                  isFolder
+                    ? "cursor-pointer border-sv-border/20 text-[#d8ebf8] hover:border-sv-cyan/40 hover:bg-[#11233d]"
+                    : "cursor-default border-transparent text-sv-text hover:bg-[#0f1d33]"
+                }`}
+                style={{ paddingLeft: `${10 + depth * 16}px` }}
                 onClick={isFolder ? () => toggleFolder(item.id) : undefined}
                 role={isFolder ? "button" : undefined}
                 tabIndex={isFolder ? 0 : undefined}
@@ -58,10 +62,23 @@ function App() {
                     : undefined
                 }
               >
-                <span className="w-3 text-xs text-sv-cyan" aria-hidden="true">
-                  {isFolder ? (isExpanded ? "v" : ">") : "-"}
+                <span
+                  className={`w-2 text-[10px] leading-none ${
+                    isFolder ? "text-sv-cyan" : "text-sv-label"
+                  }`}
+                  aria-hidden="true"
+                >
+                  {isFolder ? (isExpanded ? "v" : ">") : ""}
                 </span>
-                <span className="truncate">{item.name}</span>
+                <span
+                  className={`w-6 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                    isFolder ? "text-[#5ce0ff]" : "text-[#8ea8bc]"
+                  }`}
+                  aria-hidden="true"
+                >
+                  {isFolder ? "DIR" : "FILE"}
+                </span>
+                <span className="truncate font-medium">{item.name}</span>
               </div>
 
               {hasChildren && isExpanded ? renderTree(item.children, depth + 1) : null}
