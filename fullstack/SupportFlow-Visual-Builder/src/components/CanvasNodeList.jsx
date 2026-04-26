@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 const NODE_WIDTH = 240;
 const DEFAULT_NODE_HEIGHT = 112;
 
-function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode }) {
+function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode, onUpdateNode }) {
   const viewportRef = useRef(null);
   const nodesRef = useRef({});
   const canvasWidth = canvasSize?.w ?? 1200;
@@ -11,6 +11,7 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode }) {
   
   const [viewportWidth, setViewportWidth] = useState(0);
   const [nodeHeights, setNodeHeights] = useState({});
+  const [draggingNode, setDraggingNode] = useState(null);
 
   // Monitor viewport size for responsive scaling
   useEffect(() => {
@@ -56,6 +57,50 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode }) {
 
   const canvasScale = viewportWidth > 0 ? Math.min(1, viewportWidth / canvasWidth) : 1;
 
+  // Drag and Drop Logic
+  const handleMouseDown = (e, node) => {
+    if (e.button !== 0) return; // Only left click
+    onSelectNode(node.id);
+    
+    setDraggingNode({
+      id: node.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialX: node.position?.x ?? 0,
+      initialY: node.position?.y ?? 0,
+    });
+
+    e.stopPropagation();
+  };
+
+  useEffect(() => {
+    if (!draggingNode) return undefined;
+
+    const handleMouseMove = (e) => {
+      const dx = (e.clientX - draggingNode.startX) / canvasScale;
+      const dy = (e.clientY - draggingNode.startY) / canvasScale;
+      
+      const newX = Math.round(draggingNode.initialX + dx);
+      const newY = Math.round(draggingNode.initialY + dy);
+      
+      onUpdateNode(draggingNode.id, {
+        position: { x: newX, y: newY }
+      });
+    };
+
+    const handleMouseUp = () => {
+      setDraggingNode(null);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [draggingNode, canvasScale, onUpdateNode]);
+
   const edges = useMemo(() => {
     const nodeById = new Map(nodes.map((node) => [String(node.id), node]));
     const uniqueEdges = new Set();
@@ -92,11 +137,12 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode }) {
 
   return (
     <section
-      className="min-h-[420px] rounded-xl border border-sf-border bg-sf-pane shadow-[0_16px_32px_rgba(40,80,56,0.15)]"
+      className="min-h-[420px] rounded-xl border border-sf-border bg-sf-pane shadow-[0_16px_32px_rgba(40,80,56,0.15)] select-none"
       aria-label="Flow canvas"
     >
-      <div className="border-b border-sf-border px-3.5 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-sf-mid">
-        Canvas
+      <div className="border-b border-sf-border px-3.5 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-sf-mid flex justify-between items-center">
+        <span>Canvas</span>
+        {draggingNode && <span className="text-[10px] text-sf-primary animate-pulse normal-case">Moving Node #{draggingNode.id}...</span>}
       </div>
       <div className="p-4">
         {nodes.length === 0 ? (
@@ -139,23 +185,28 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode }) {
                   <li
                     key={node.id}
                     ref={(el) => (nodesRef.current[node.id] = el)}
-                    onClick={() => onSelectNode(node.id)}
-                    className={`absolute w-[240px] cursor-pointer rounded-lg border transition-all duration-200 px-3 py-2 text-sm ${
+                    onMouseDown={(e) => handleMouseDown(e, node)}
+                    className={`absolute w-[240px] cursor-move rounded-lg border transition-all duration-200 px-3 py-2 text-sm ${
                       selectedNodeId === node.id
                         ? "z-10 border-sf-primary bg-white shadow-[0_0_0_4px_rgba(25,135,84,0.15),0_12px_28px_rgba(25,135,84,0.18)]"
-                        : "border-sf-border bg-white shadow-[0_8px_20px_rgba(27,74,50,0.12)] hover:border-[#6faa8b] hover:shadow-[0_8px_24px_rgba(27,74,50,0.15)]"
-                    }`}
+                        : "border-sf-border bg-white shadow-[0_8px_20px_rgba(27,74,50,0.12)] hover:border-[#6faa8b]"
+                    } ${draggingNode?.id === node.id ? "opacity-90 scale-[1.02] ring-2 ring-sf-primary" : ""}`}
                     style={{
                       left: `${node.position?.x ?? 0}px`,
                       top: `${node.position?.y ?? 0}px`,
                       minHeight: `${DEFAULT_NODE_HEIGHT}px`,
                     }}
                   >
-                    <p className={`m-0 text-xs font-semibold uppercase tracking-[0.08em] ${selectedNodeId === node.id ? "text-sf-primary" : "text-sf-mid"}`}>
-                      Node #{node.id} - {node.type}
-                    </p>
-                    <p className="mt-1 text-[#2f5b42]">{node.text}</p>
-                    <p className="mt-1 text-xs text-sf-mid">Options: {node.options?.length ?? 0}</p>
+                    <div className="flex justify-between items-center mb-1">
+                      <p className={`m-0 text-[10px] font-bold uppercase tracking-[0.08em] ${selectedNodeId === node.id ? "text-sf-primary" : "text-sf-mid"}`}>
+                        Node #{node.id}
+                      </p>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-sf-bg text-sf-mid font-medium border border-sf-border/50">
+                        {node.type}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[#2f5b42] line-clamp-3">{node.text}</p>
+                    <p className="mt-1 text-[11px] text-sf-mid font-medium">Options: {node.options?.length ?? 0}</p>
                   </li>
                 ))}
               </ul>
