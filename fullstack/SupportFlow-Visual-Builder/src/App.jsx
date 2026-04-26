@@ -2,6 +2,7 @@ import { useState } from "react";
 import AppHeader from "./components/AppHeader";
 import CanvasNodeList from "./components/CanvasNodeList";
 import NodeEditorPanel from "./components/NodeEditorPanel";
+import FlowPreview from "./components/FlowPreview";
 import { useFlowNodes } from "./hooks/useFlowNodes";
 
 function App() {
@@ -20,8 +21,8 @@ function App() {
 
       <main className="grid grid-cols-1 gap-5 p-5 flex-1 overflow-hidden">
         {isPreviewMode ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-sf-mid italic">Preview Mode UI Coming Soon...</p>
+          <div className="flex items-center justify-center h-full overflow-y-auto">
+            <FlowPreview nodes={nodes} />
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px] h-full">
