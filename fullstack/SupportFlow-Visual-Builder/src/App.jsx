@@ -5,7 +5,7 @@ import NodeEditorPanel from "./components/NodeEditorPanel";
 import { useFlowNodes } from "./hooks/useFlowNodes";
 
 function App() {
-  const { nodes, canvasSize } = useFlowNodes();
+  const { nodes, canvasSize, updateNode } = useFlowNodes();
   const [selectedNodeId, setSelectedNodeId] = useState(null);
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
@@ -24,7 +24,11 @@ function App() {
           />
         </div>
         <div className="shrink-0">
-          <NodeEditorPanel selectedNode={selectedNode} nodeCount={nodes.length} />
+          <NodeEditorPanel
+            selectedNode={selectedNode}
+            nodeCount={nodes.length}
+            onUpdateNode={updateNode}
+          />
         </div>
       </main>
     </div>
