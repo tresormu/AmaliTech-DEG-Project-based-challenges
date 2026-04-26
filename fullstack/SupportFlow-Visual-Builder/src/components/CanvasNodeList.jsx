@@ -35,7 +35,6 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode, onUpd
     return () => observer.disconnect();
   }, [canvasWidth]);
 
-  // Sync connector redraw by observing node height changes in real-time
   useEffect(() => {
     if (typeof ResizeObserver === "undefined") return undefined;
 
