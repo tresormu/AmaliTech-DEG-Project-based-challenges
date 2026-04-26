@@ -1,4 +1,69 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+
+const NODE_WIDTH = 240;
+const NODE_HEIGHT = 112;
+
 function CanvasNodeList({ nodes, canvasSize }) {
+  const viewportRef = useRef(null);
+  const canvasWidth = canvasSize?.w ?? 1200;
+  const canvasHeight = canvasSize?.h ?? 800;
+  const [viewportWidth, setViewportWidth] = useState(canvasWidth);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return undefined;
+
+    const updateWidth = () => {
+      setViewportWidth(viewport.clientWidth || canvasWidth);
+    };
+
+    updateWidth();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateWidth);
+      return () => window.removeEventListener("resize", updateWidth);
+    }
+
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [canvasWidth]);
+
+  const canvasScale = Math.min(1, viewportWidth / canvasWidth);
+
+  const edges = useMemo(() => {
+    const nodeById = new Map(nodes.map((node) => [String(node.id), node]));
+    const uniqueEdges = new Set();
+
+    return nodes.flatMap((node) => {
+      const sourceId = String(node.id);
+      const sourceX = (node.position?.x ?? 0) + NODE_WIDTH / 2;
+      const sourceY = (node.position?.y ?? 0) + NODE_HEIGHT;
+
+      return (node.options ?? [])
+        .map((option) => {
+          const targetId = String(option.nextId ?? "");
+          const targetNode = nodeById.get(targetId);
+
+          if (!targetNode) return null;
+
+          const edgeKey = `${sourceId}->${targetId}`;
+          if (uniqueEdges.has(edgeKey)) return null;
+          uniqueEdges.add(edgeKey);
+
+          const targetX = (targetNode.position?.x ?? 0) + NODE_WIDTH / 2;
+          const targetY = targetNode.position?.y ?? 0;
+          const controlOffset = Math.max(64, Math.abs(targetY - sourceY) * 0.45);
+
+          return {
+            id: edgeKey,
+            d: `M ${sourceX} ${sourceY} C ${sourceX} ${sourceY + controlOffset}, ${targetX} ${targetY - controlOffset}, ${targetX} ${targetY}`,
+          };
+        })
+        .filter(Boolean);
+    });
+  }, [nodes]);
+
   return (
     <section
       className="min-h-[420px] rounded-xl border border-sf-border bg-sf-pane shadow-[0_16px_32px_rgba(40,80,56,0.15)]"
@@ -11,31 +76,58 @@ function CanvasNodeList({ nodes, canvasSize }) {
         {nodes.length === 0 ? (
           <p className="text-sm text-[#2f5b42]">Loading flow data...</p>
         ) : (
-          <div className="overflow-auto rounded-lg border border-[#d2e8da] bg-[#f7fcf9] p-3">
-            <ul
-              className="relative m-0 list-none p-0"
+          <div
+            ref={viewportRef}
+            className="overflow-auto rounded-lg border border-[#d2e8da] bg-[#f7fcf9] p-3"
+          >
+            <div
+              className="relative"
               style={{
-                width: `${canvasSize?.w ?? 1200}px`,
-                height: `${canvasSize?.h ?? 800}px`,
+                width: `${canvasWidth * canvasScale}px`,
+                height: `${canvasHeight * canvasScale}px`,
               }}
             >
-              {nodes.map((node) => (
-                <li
-                  key={node.id}
-                  className="absolute w-[240px] rounded-lg border border-sf-border bg-white px-3 py-2 text-sm shadow-[0_8px_20px_rgba(27,74,50,0.12)]"
-                  style={{
-                    left: `${node.position?.x ?? 0}px`,
-                    top: `${node.position?.y ?? 0}px`,
-                  }}
-                >
-                  <p className="m-0 text-xs font-semibold uppercase tracking-[0.08em] text-sf-mid">
-                    Node #{node.id} - {node.type}
-                  </p>
-                  <p className="mt-1 text-[#2f5b42]">{node.text}</p>
-                  <p className="mt-1 text-xs text-sf-mid">Options: {node.options?.length ?? 0}</p>
-                </li>
-              ))}
-            </ul>
+              <ul
+                className="relative m-0 list-none p-0 origin-top-left"
+                style={{
+                  width: `${canvasWidth}px`,
+                  height: `${canvasHeight}px`,
+                  transform: `scale(${canvasScale})`,
+                }}
+              >
+                <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
+                  {edges.map((edge) => (
+                    <path
+                      key={edge.id}
+                      d={edge.d}
+                      fill="none"
+                      stroke="#6faa8b"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  ))}
+                </svg>
+
+                {nodes.map((node) => (
+                  <li
+                    key={node.id}
+                    className="absolute w-[240px] rounded-lg border border-sf-border bg-white px-3 py-2 text-sm shadow-[0_8px_20px_rgba(27,74,50,0.12)]"
+                    style={{
+                      left: `${node.position?.x ?? 0}px`,
+                      top: `${node.position?.y ?? 0}px`,
+                      minHeight: `${NODE_HEIGHT}px`,
+                    }}
+                  >
+                    <p className="m-0 text-xs font-semibold uppercase tracking-[0.08em] text-sf-mid">
+                      Node #{node.id} - {node.type}
+                    </p>
+                    <p className="mt-1 text-[#2f5b42]">{node.text}</p>
+                    <p className="mt-1 text-xs text-sf-mid">Options: {node.options?.length ?? 0}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
       </div>
