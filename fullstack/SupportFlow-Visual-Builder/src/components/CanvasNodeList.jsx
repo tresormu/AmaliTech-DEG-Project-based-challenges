@@ -19,8 +19,7 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode, onUpd
     if (!viewport) return undefined;
 
     const updateWidth = () => {
-      // Use the inner width available for the canvas content
-      const innerWidth = viewport.clientWidth - 24; // subtract padding
+      const innerWidth = viewport.clientWidth - 24;
       setViewportWidth(innerWidth > 0 ? innerWidth : canvasWidth);
     };
 
@@ -36,24 +35,36 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode, onUpd
     return () => observer.disconnect();
   }, [canvasWidth]);
 
-  // Measure actual node heights to ensure connectors start from the true bottom
-  useLayoutEffect(() => {
-    const heights = {};
-    let changed = false;
-    
-    nodes.forEach((node) => {
-      const el = nodesRef.current[node.id];
-      if (el) {
-        const h = el.offsetHeight;
-        heights[node.id] = h;
-        if (h !== nodeHeights[node.id]) changed = true;
-      }
+  // Sync connector redraw by observing node height changes in real-time
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return undefined;
+
+    const observer = new ResizeObserver((entries) => {
+      setNodeHeights((prev) => {
+        const next = { ...prev };
+        let changed = false;
+
+        entries.forEach((entry) => {
+          const id = entry.target.getAttribute("data-node-id");
+          if (id) {
+            const h = entry.target.offsetHeight;
+            if (prev[id] !== h) {
+              next[id] = h;
+              changed = true;
+            }
+          }
+        });
+
+        return changed ? next : prev;
+      });
     });
 
-    if (changed) {
-      setNodeHeights(heights);
-    }
-  }, [nodes, viewportWidth, nodeHeights]);
+    Object.values(nodesRef.current).forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [nodes]);
 
   const canvasScale = viewportWidth > 0 ? Math.min(1, viewportWidth / canvasWidth) : 1;
 
@@ -185,6 +196,7 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode, onUpd
                   <li
                     key={node.id}
                     ref={(el) => (nodesRef.current[node.id] = el)}
+                    data-node-id={node.id}
                     onMouseDown={(e) => handleMouseDown(e, node)}
                     className={`absolute w-[240px] cursor-move rounded-lg border transition-all duration-200 px-3 py-2 text-sm ${
                       selectedNodeId === node.id

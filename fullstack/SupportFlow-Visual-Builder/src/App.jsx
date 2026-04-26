@@ -32,6 +32,7 @@ function App() {
                 canvasSize={canvasSize}
                 selectedNodeId={selectedNodeId}
                 onSelectNode={setSelectedNodeId}
+                onUpdateNode={updateNode}
               />
             </div>
             <div className="shrink-0">
