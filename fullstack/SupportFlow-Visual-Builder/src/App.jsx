@@ -1,122 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
-
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <div className="grid min-h-screen grid-rows-[72px_1fr] bg-sf-bg text-sf-text">
+      <header className="flex items-center justify-between border-b border-sf-border bg-sf-pane px-6">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+          <h1 className="m-0 text-xl font-semibold text-sf-deep">SupportFlow</h1>
+          <p className="mt-0.5 text-xs text-sf-mid">Visual Decision Builder</p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="cursor-pointer rounded-lg border border-[#93c7aa] bg-[#f9fffb] px-3 py-2 text-xs text-[#1f4a32]"
+          >
+            Editor Mode
+          </button>
+          <button
+            type="button"
+            className="cursor-pointer rounded-lg border border-sf-primary bg-sf-primary px-3 py-2 text-xs text-white"
+          >
+            Play Preview
+          </button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <main className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-[1fr_320px]">
+        <section className="min-h-[420px] rounded-xl border border-sf-border bg-sf-pane" aria-label="Flow canvas">
+          <div className="border-b border-[#d9ecdf] px-3.5 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-sf-mid">
+            Canvas
+          </div>
+          <div className="p-4 text-sm text-[#2f5b42]">Node graph will render here in the next commit.</div>
+        </section>
+
+        <aside className="min-h-[420px] rounded-xl border border-sf-border bg-sf-pane" aria-label="Edit panel">
+          <div className="border-b border-[#d9ecdf] px-3.5 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-sf-mid">
+            Node Editor
+          </div>
+          <div className="p-4 text-sm text-[#2f5b42]">Select a node to edit question text.</div>
+        </aside>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
