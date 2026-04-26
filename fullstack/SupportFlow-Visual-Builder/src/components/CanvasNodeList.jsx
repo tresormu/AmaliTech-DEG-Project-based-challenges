@@ -1,14 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const NODE_WIDTH = 240;
-const NODE_HEIGHT = 112;
+const DEFAULT_NODE_HEIGHT = 112;
 
 function CanvasNodeList({ nodes, canvasSize }) {
   const viewportRef = useRef(null);
+  const nodesRef = useRef({});
   const canvasWidth = canvasSize?.w ?? 1200;
   const canvasHeight = canvasSize?.h ?? 800;
+  
   const [viewportWidth, setViewportWidth] = useState(canvasWidth);
+  const [nodeHeights, setNodeHeights] = useState({});
 
+  // Monitor viewport size for responsive scaling
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return undefined;
@@ -29,6 +33,25 @@ function CanvasNodeList({ nodes, canvasSize }) {
     return () => observer.disconnect();
   }, [canvasWidth]);
 
+  // Measure actual node heights to ensure connectors start from the true bottom
+  useLayoutEffect(() => {
+    const heights = {};
+    let changed = false;
+    
+    nodes.forEach((node) => {
+      const el = nodesRef.current[node.id];
+      if (el) {
+        const h = el.offsetHeight;
+        heights[node.id] = h;
+        if (h !== nodeHeights[node.id]) changed = true;
+      }
+    });
+
+    if (changed) {
+      setNodeHeights(heights);
+    }
+  }, [nodes, viewportWidth, nodeHeights]);
+
   const canvasScale = Math.min(1, viewportWidth / canvasWidth);
 
   const edges = useMemo(() => {
@@ -37,8 +60,9 @@ function CanvasNodeList({ nodes, canvasSize }) {
 
     return nodes.flatMap((node) => {
       const sourceId = String(node.id);
+      const sourceHeight = nodeHeights[node.id] ?? DEFAULT_NODE_HEIGHT;
       const sourceX = (node.position?.x ?? 0) + NODE_WIDTH / 2;
-      const sourceY = (node.position?.y ?? 0) + NODE_HEIGHT;
+      const sourceY = (node.position?.y ?? 0) + sourceHeight;
 
       return (node.options ?? [])
         .map((option) => {
@@ -62,7 +86,7 @@ function CanvasNodeList({ nodes, canvasSize }) {
         })
         .filter(Boolean);
     });
-  }, [nodes]);
+  }, [nodes, nodeHeights]);
 
   return (
     <section
@@ -112,11 +136,12 @@ function CanvasNodeList({ nodes, canvasSize }) {
                 {nodes.map((node) => (
                   <li
                     key={node.id}
+                    ref={(el) => (nodesRef.current[node.id] = el)}
                     className="absolute w-[240px] rounded-lg border border-sf-border bg-white px-3 py-2 text-sm shadow-[0_8px_20px_rgba(27,74,50,0.12)]"
                     style={{
                       left: `${node.position?.x ?? 0}px`,
                       top: `${node.position?.y ?? 0}px`,
-                      minHeight: `${NODE_HEIGHT}px`,
+                      minHeight: `${DEFAULT_NODE_HEIGHT}px`,
                     }}
                   >
                     <p className="m-0 text-xs font-semibold uppercase tracking-[0.08em] text-sf-mid">
