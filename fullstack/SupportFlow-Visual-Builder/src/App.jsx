@@ -1,3 +1,4 @@
+import { useState } from "react";
 import AppHeader from "./components/AppHeader";
 import CanvasNodeList from "./components/CanvasNodeList";
 import NodeEditorPanel from "./components/NodeEditorPanel";
@@ -5,14 +6,26 @@ import { useFlowNodes } from "./hooks/useFlowNodes";
 
 function App() {
   const { nodes, canvasSize } = useFlowNodes();
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
+
+  const selectedNode = nodes.find((n) => n.id === selectedNodeId);
 
   return (
-    <div className="grid min-h-screen grid-rows-[72px_1fr] bg-sf-bg text-sf-text">
+    <div className="flex flex-col min-h-screen bg-sf-bg text-sf-text overflow-x-hidden">
       <AppHeader />
 
-      <main className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-[1fr_320px]">
-        <CanvasNodeList nodes={nodes} canvasSize={canvasSize} />
-        <NodeEditorPanel nodeCount={nodes.length} />
+      <main className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_320px] flex-1">
+        <div className="min-w-0">
+          <CanvasNodeList
+            nodes={nodes}
+            canvasSize={canvasSize}
+            selectedNodeId={selectedNodeId}
+            onSelectNode={setSelectedNodeId}
+          />
+        </div>
+        <div className="shrink-0">
+          <NodeEditorPanel selectedNode={selectedNode} nodeCount={nodes.length} />
+        </div>
       </main>
     </div>
   );

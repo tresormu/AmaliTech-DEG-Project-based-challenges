@@ -3,13 +3,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 const NODE_WIDTH = 240;
 const DEFAULT_NODE_HEIGHT = 112;
 
-function CanvasNodeList({ nodes, canvasSize }) {
+function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode }) {
   const viewportRef = useRef(null);
   const nodesRef = useRef({});
   const canvasWidth = canvasSize?.w ?? 1200;
   const canvasHeight = canvasSize?.h ?? 800;
   
-  const [viewportWidth, setViewportWidth] = useState(canvasWidth);
+  const [viewportWidth, setViewportWidth] = useState(0);
   const [nodeHeights, setNodeHeights] = useState({});
 
   // Monitor viewport size for responsive scaling
@@ -18,7 +18,9 @@ function CanvasNodeList({ nodes, canvasSize }) {
     if (!viewport) return undefined;
 
     const updateWidth = () => {
-      setViewportWidth(viewport.clientWidth || canvasWidth);
+      // Use the inner width available for the canvas content
+      const innerWidth = viewport.clientWidth - 24; // subtract padding
+      setViewportWidth(innerWidth > 0 ? innerWidth : canvasWidth);
     };
 
     updateWidth();
@@ -52,7 +54,7 @@ function CanvasNodeList({ nodes, canvasSize }) {
     }
   }, [nodes, viewportWidth, nodeHeights]);
 
-  const canvasScale = Math.min(1, viewportWidth / canvasWidth);
+  const canvasScale = viewportWidth > 0 ? Math.min(1, viewportWidth / canvasWidth) : 1;
 
   const edges = useMemo(() => {
     const nodeById = new Map(nodes.map((node) => [String(node.id), node]));
@@ -137,14 +139,19 @@ function CanvasNodeList({ nodes, canvasSize }) {
                   <li
                     key={node.id}
                     ref={(el) => (nodesRef.current[node.id] = el)}
-                    className="absolute w-[240px] rounded-lg border border-sf-border bg-white px-3 py-2 text-sm shadow-[0_8px_20px_rgba(27,74,50,0.12)]"
+                    onClick={() => onSelectNode(node.id)}
+                    className={`absolute w-[240px] cursor-pointer rounded-lg border transition-all duration-200 px-3 py-2 text-sm ${
+                      selectedNodeId === node.id
+                        ? "z-10 border-sf-primary bg-white shadow-[0_0_0_4px_rgba(25,135,84,0.15),0_12px_28px_rgba(25,135,84,0.18)]"
+                        : "border-sf-border bg-white shadow-[0_8px_20px_rgba(27,74,50,0.12)] hover:border-[#6faa8b] hover:shadow-[0_8px_24px_rgba(27,74,50,0.15)]"
+                    }`}
                     style={{
                       left: `${node.position?.x ?? 0}px`,
                       top: `${node.position?.y ?? 0}px`,
                       minHeight: `${DEFAULT_NODE_HEIGHT}px`,
                     }}
                   >
-                    <p className="m-0 text-xs font-semibold uppercase tracking-[0.08em] text-sf-mid">
+                    <p className={`m-0 text-xs font-semibold uppercase tracking-[0.08em] ${selectedNodeId === node.id ? "text-sf-primary" : "text-sf-mid"}`}>
                       Node #{node.id} - {node.type}
                     </p>
                     <p className="mt-1 text-[#2f5b42]">{node.text}</p>
