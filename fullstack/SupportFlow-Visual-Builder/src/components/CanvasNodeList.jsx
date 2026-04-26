@@ -179,6 +179,18 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode, onUpd
                 }}
               >
                 <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
+                  <defs>
+                    <marker
+                      id="arrowhead"
+                      markerWidth="10"
+                      markerHeight="7"
+                      refX="9"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <polygon points="0 0, 10 3.5, 0 7" fill="#6faa8b" />
+                    </marker>
+                  </defs>
                   {edges.map((edge) => (
                     <path
                       key={edge.id}
@@ -188,39 +200,65 @@ function CanvasNodeList({ nodes, canvasSize, selectedNodeId, onSelectNode, onUpd
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      markerEnd="url(#arrowhead)"
+                      className="transition-all duration-300"
                     />
                   ))}
                 </svg>
 
-                {nodes.map((node) => (
-                  <li
-                    key={node.id}
-                    ref={(el) => (nodesRef.current[node.id] = el)}
-                    data-node-id={node.id}
-                    onMouseDown={(e) => handleMouseDown(e, node)}
-                    className={`absolute w-[240px] cursor-move rounded-lg border transition-all duration-200 px-3 py-2 text-sm ${
-                      selectedNodeId === node.id
-                        ? "z-10 border-sf-primary bg-white shadow-[0_0_0_4px_rgba(25,135,84,0.15),0_12px_28px_rgba(25,135,84,0.18)]"
-                        : "border-sf-border bg-white shadow-[0_8px_20px_rgba(27,74,50,0.12)] hover:border-[#6faa8b]"
-                    } ${draggingNode?.id === node.id ? "opacity-90 scale-[1.02] ring-2 ring-sf-primary" : ""}`}
-                    style={{
-                      left: `${node.position?.x ?? 0}px`,
-                      top: `${node.position?.y ?? 0}px`,
-                      minHeight: `${DEFAULT_NODE_HEIGHT}px`,
-                    }}
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <p className={`m-0 text-[10px] font-bold uppercase tracking-[0.08em] ${selectedNodeId === node.id ? "text-sf-primary" : "text-sf-mid"}`}>
-                        Node #{node.id}
+                {nodes.map((node) => {
+                  const isSelected = selectedNodeId === node.id;
+                  const isDragging = draggingNode?.id === node.id;
+                  const isStart = node.type === "start";
+                  const isEnd = node.type === "end";
+
+                  return (
+                    <li
+                      key={node.id}
+                      ref={(el) => (nodesRef.current[node.id] = el)}
+                      data-node-id={node.id}
+                      onMouseDown={(e) => handleMouseDown(e, node)}
+                      className={`absolute w-[240px] cursor-move rounded-xl border-2 transition-all duration-200 px-4 py-3 text-sm ${
+                        isSelected
+                          ? "z-10 border-sf-primary bg-white shadow-[0_0_0_4px_rgba(25,135,84,0.15),0_12px_32px_rgba(25,135,84,0.2)] scale-[1.02]"
+                          : "border-sf-border bg-white shadow-[0_8px_20px_rgba(27,74,50,0.1)] hover:border-[#6faa8b] hover:shadow-[0_8px_24px_rgba(27,74,50,0.15)]"
+                      } ${isDragging ? "opacity-90 ring-4 ring-sf-primary/20 cursor-grabbing" : ""} ${
+                        isStart ? "border-l-[6px] border-l-sf-primary" : ""
+                      } ${isEnd ? "border-l-[6px] border-l-red-400" : ""}`}
+                      style={{
+                        left: `${node.position?.x ?? 0}px`,
+                        top: `${node.position?.y ?? 0}px`,
+                        minHeight: `${DEFAULT_NODE_HEIGHT}px`,
+                      }}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? "text-sf-primary" : "text-sf-mid"}`}>
+                          Node #{node.id}
+                        </span>
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter border ${
+                          isStart ? "bg-sf-primary/10 text-sf-primary border-sf-primary/20" : 
+                          isEnd ? "bg-red-50 text-red-500 border-red-100" :
+                          "bg-sf-bg text-sf-mid border-sf-border/50"
+                        }`}>
+                          {node.type}
+                        </span>
+                      </div>
+                      <p className="text-sf-text leading-relaxed font-medium">
+                        {node.text}
                       </p>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-sf-bg text-sf-mid font-medium border border-sf-border/50">
-                        {node.type}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-[#2f5b42] line-clamp-3">{node.text}</p>
-                    <p className="mt-1 text-[11px] text-sf-mid font-medium">Options: {node.options?.length ?? 0}</p>
-                  </li>
-                ))}
+                      <div className="mt-3 pt-2 border-t border-sf-border/30 flex items-center gap-2">
+                        <div className="flex -space-x-1">
+                          {(node.options ?? []).map((_, i) => (
+                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-sf-primary/40 ring-1 ring-white" />
+                          ))}
+                        </div>
+                        <span className="text-[10px] text-sf-mid font-semibold uppercase tracking-tight">
+                          {node.options?.length ?? 0} Options
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>
