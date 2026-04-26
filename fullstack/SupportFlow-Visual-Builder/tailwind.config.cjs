@@ -11,7 +11,9 @@ module.exports = {
           mid: "#427055",
           text: "#173124",
           pane: "#ffffff",
-          primary: "#198754"
+          pane2: "#f8fef9",
+          primary: "#198754",
+          primaryDark: "#146c43"
         }
       }
     }

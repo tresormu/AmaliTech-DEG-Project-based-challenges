@@ -27,6 +27,6 @@
   }
 
   body {
-    background: #eef7f1;
+    background: radial-gradient(circle at 15% 10%, #f8fff9 0%, #eef7f1 45%, #e6f2ea 100%);
   }
 }
