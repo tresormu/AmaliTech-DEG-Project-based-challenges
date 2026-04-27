@@ -5,7 +5,7 @@ A professional, zero-dependency visual decision tree editor for customer support
 ## 🔗 Project Links
 
 - **Live Demo**: [View Project Live](https://amali-tech-deg-project-based-challe-nine.vercel.app/)
-- **Design File**: [Figma Design System](https://figma.com/file/your-design-link)
+- **Design File**: [Figma Design System](https://www.figma.com/design/z0dI5NlX3zRiqVHGnMhlyj/Support-Flow?node-id=0-1&p=f&t=sjIeibiIPBn8sYz3-0)
 
 ## 🚀 Key Features
 
@@ -24,12 +24,6 @@ For the "Innovation Clause" requirement, I implemented a **custom Drag-and-Drop 
 - **Professional User Experience**: Interactive dragging provides a high-end feel that replaces the "messy Excel" experience with a modern, intuitive workspace.
 - **Canvas-Scale Accuracy**: The dragging logic intelligently accounts for the current viewport scaling, ensuring that movement feels precise and fluid on any screen size.
 
-## 💻 Tech Stack
-
-- **Framework**: [React 18](https://reactjs.org/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Typography**: [DM Sans](https://fonts.google.com/specimen/DM+Sans) (Google Fonts)
 
 ## ⚙️ Setup & Installation
 
