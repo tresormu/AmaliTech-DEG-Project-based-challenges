@@ -3,13 +3,11 @@
 SecureVault Explorer is a React + Vite frontend for navigating enterprise-style nested file structures in a dark, security-focused UI.  
 It supports recursive tree rendering, file inspection, keyboard navigation, and search with auto-expand.
 
-## Live Demo
+## 🔗 Project Links
 
-- Deployment Link: `https://amali-tech-deg-project-based-challe-liart.vercel.app/`
+- **Live Demo**: [View Project Live](https://amali-tech-deg-project-based-challe-liart.vercel.app/)
+- **Design File**: [Figma Design System](https://www.figma.com/design/vqUSZsdj5c826R88VrpvOA/Secure-vault?node-id=0-1&t=45MWSpV6pl1a7vns-1)
 
-## Design File
-
-- Figma Link: `https://www.figma.com/design/vqUSZsdj5c826R88VrpvOA/Secure-vault?node-id=0-1&t=45MWSpV6pl1a7vns-1`
 
 ## Tech Stack
 

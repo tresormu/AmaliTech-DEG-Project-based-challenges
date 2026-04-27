@@ -7,6 +7,13 @@ A professional, zero-dependency visual decision tree editor for customer support
 - **Live Demo**: [View Project Live](https://amali-tech-deg-project-based-challe-nine.vercel.app/)
 - **Design File**: [Figma Design System](https://www.figma.com/design/z0dI5NlX3zRiqVHGnMhlyj/Support-Flow?node-id=0-1&p=f&t=sjIeibiIPBn8sYz3-0)
 
+
+## Tech Stack
+
+- React
+- Vite
+- Tailwind CSS
+
 ## 🚀 Key Features
 
 - **Visual Flowchart Editor**: Build and visualize decision trees on a responsive canvas with absolute positioning.
